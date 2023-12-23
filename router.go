@@ -143,8 +143,7 @@ func (r *router) HandleStd(methods string, path string, handler http.Handler, ms
 
 // HandleFunc handlerFunc方式注册路由
 func (r *router) HandleFunc(methods string, path string, handlerFunc HandlerFunc, ms ...MiddlewareFunc) {
-	var handler = r.TransHandlerFunc(handlerFunc, ms...)
-	r.HandleStd(methods, path, handler)
+	r.HandleStd(methods, path, handlerFunc.Handler(), ms...)
 }
 
 // Group 新建路由组
@@ -176,11 +175,6 @@ func (r *router) Use(ms ...MiddlewareFunc) Router {
 		r.middlewareFuncs = append(r.middlewareFuncs, ms...)
 	}
 	return r
-}
-
-// TransHandlerFunc 将HandlerFunc转换成route handler
-func (r *router) TransHandlerFunc(h HandlerFunc, ms ...MiddlewareFunc) http.Handler {
-	return r.TransHandler(h.Handler(), ms...)
 }
 
 // TransHandler 将HandlerFunc转换成route handler
