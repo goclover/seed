@@ -20,9 +20,34 @@ type RouteMapper interface {
 type Router interface {
 	http.Handler
 
+	// Use 注册过滤器(中间件)
+	//
+	// 	可用于给 server 增加切片的功能
+	// 	如可以创建注册一个用于校验是否登录的 中间件
+	// 	注册的中间件会对此后的 handler 生效，在此之前注册的 handler 方法不会生效
 	Use(ms ...MiddlewareFunc) Router
+
+	// HandleStd 以http.Handler方式注册业务handler
+	//
+	// 	method  是http方法，如GET、POST,也可以使用逗号来连接同时传入多个，如 "GET,POST"
+	// 	也可以用特殊的 ANY,会自动注册所有( ANY 的取值详见 MethodAny )
+	// 	handler 是业务的逻辑
+	// 	ms 是该接口特有的中间件函数
 	HandleStd(methods string, path string, handler http.Handler, ms ...MiddlewareFunc)
+
+	// HandleFunc 以HandlerFunc方式注册业务handler
+	//
+	// 	method  是http方法，如GET、POST,也可以使用逗号来连接同时传入多个，如 "GET,POST"
+	// 	也可以用特殊的 ANY,会自动注册所有( ANY 的取值详见 MethodAny )
+	// 	handler 是业务的逻辑
+	// 	ms 是该接口特有的中间件函数
 	HandleFunc(methods string, path string, handlerFunc HandlerFunc, ms ...MiddlewareFunc)
+
+	// Group 路由分组
+	//
+	// 	如 可以将 /user/xxx 系列分成一个分组
+	// 	prefix路由前缀，如 "/user"
+	// 	ms 是该分组的中间件函数
 	Group(prefix string, f func(r Router), ms ...MiddlewareFunc)
 }
 
