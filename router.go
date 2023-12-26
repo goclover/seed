@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 )
+
+var rexp = regexp.MustCompile(`/+`)
 
 // RouteMapper 路由匹配器
 type RouteMapper interface {
@@ -98,7 +101,8 @@ func (rm *routeMapper) Add(route Route) error {
 
 // segment 对路由path进行分段
 func (rm *routeMapper) segment(path string) []string {
-	var segments = strings.Split(strings.Trim(path, "/"), "/")
+	path = rexp.ReplaceAllString(strings.Trim(strings.ToLower(path), "/"), "/")
+	var segments = strings.Split(path, "/")
 	if path == "/" || path == "" {
 		segments = []string{"/"}
 	}
@@ -155,7 +159,7 @@ func (r *router) Group(prefix string, f func(r Router), ms ...MiddlewareFunc) {
 	mws = append(mws, ms...)
 
 	//keep prefix
-	prefix += r.prefix
+	prefix = r.prefix + prefix
 	var router = &router{mapper: r.mapper, middlewareFuncs: mws, notFound: r.notFound, prefix: prefix}
 	f(router)
 }
