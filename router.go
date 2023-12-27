@@ -177,7 +177,7 @@ func (r *router) HandleFunc(methods string, path string, handlerFunc HandlerFunc
 
 // Group 新建路由组
 func (r *router) Group(prefix string, f func(r Router), ms ...MiddlewareFunc) {
-	var mws = make([]MiddlewareFunc, len(ms))
+	var mws = make([]MiddlewareFunc, len(r.middlewareFuncs))
 
 	//copy middlewares
 	_ = copy(mws, r.middlewareFuncs)
