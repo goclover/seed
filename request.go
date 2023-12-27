@@ -58,7 +58,7 @@ func (r *request) HTTPRequest() *http.Request {
 }
 
 func (r *request) Query(name string) (value string, has bool) {
-	if r.Request.URL == nil {
+	if r.urlQuery == nil {
 		r.urlQuery = r.URL.Query()
 	}
 	values := r.urlQuery[name]
