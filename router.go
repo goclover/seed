@@ -206,7 +206,7 @@ func (r *router) Use(ms ...MiddlewareFunc) Router {
 	return r
 }
 
-// TransHandler 将HandlerFunc转换成route handler
+// TransHandler 将Handler 合并当前路由中间件成实际的route handler
 func (r *router) TransHandler(h http.Handler, ms ...MiddlewareFunc) http.Handler {
 	ms = append(r.middlewareFuncs, ms...)
 	var f http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
