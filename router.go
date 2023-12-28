@@ -210,8 +210,8 @@ func (r *router) Use(ms ...MiddlewareFunc) Router {
 func (r *router) TransHandler(h http.Handler, ms ...MiddlewareFunc) http.Handler {
 	ms = append(r.middlewareFuncs, ms...)
 	var f http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		var mw MiddlewareFunc = func(ctx context.Context, w http.ResponseWriter, req *http.Request, next MiddleWareQueue) bool {
-			h.ServeHTTP(w, r)
+		var mw MiddlewareFunc = func(ctx context.Context, ww http.ResponseWriter, rr *http.Request, next MiddleWareQueue) bool {
+			h.ServeHTTP(ww, rr)
 			return false
 		}
 
