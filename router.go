@@ -195,6 +195,9 @@ func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		route.ServeHTTP(w, req)
 		return
 	}
+	if r.notFound == nil {
+		r.notFound = r.TransHandler(NotFoundHandler.Handler())
+	}
 	r.notFound.ServeHTTP(w, req)
 }
 
@@ -227,6 +230,6 @@ func NewRouter() Router {
 		prefix:          "",
 		mapper:          &routeMapper{tree: map[string]*routeNode{}},
 		middlewareFuncs: []MiddlewareFunc{},
-		notFound:        NotFoundHandler.Handler(),
+		notFound:        nil,
 	}
 }
