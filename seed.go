@@ -27,6 +27,9 @@ type MSeed interface {
 	// HTTPServer 返回实例的 *http.Server
 	HTTPServer() *http.Server
 
+	// 设置默认的http server
+	SetHTTPServer(srv *http.Server) MSeed
+
 	// Run 启动HTTPServer
 	//
 	// 	addrs 监听的端口,非必选，但如果没有通过HTTPServer pointer修改且值不给可能导致服务启动失败
@@ -67,6 +70,11 @@ func New() MSeed {
 
 func (c *mseed) HTTPServer() *http.Server {
 	return c.server
+}
+
+func (c *mseed) SetHTTPServer(srv *http.Server) MSeed {
+	c.server = srv
+	return c
 }
 
 // start http server
