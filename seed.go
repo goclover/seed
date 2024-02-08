@@ -41,9 +41,6 @@ type MSeed interface {
 	// 	keyFile https keyFile
 	// 	addrs 监听的端口,非必选，但如果没有通过HTTPServer pointer修改且值不给可能导致服务启动失败
 	RunTLS(certFile, keyFile string, addrs ...string) error
-
-	// Mode 返回当前程序的运行环境（master进程还是worker进程）
-	Mode() Mode
 }
 
 // mseed is an app driven by Router
@@ -86,11 +83,10 @@ func (c *mseed) Run(addrs ...string) error {
 		c.server.Handler = c
 	}
 
-	var f = c.runAsMaster
-	if os.Getenv("mode") != "" {
-		f = c.runAsWorker
+	if IsWorkerMode() {
+		return c.runAsWorker()
 	}
-	return f()
+	return c.runAsMaster()
 }
 
 func (c *mseed) RunTLS(certFile, keyFile string, addrs ...string) error {
@@ -148,13 +144,6 @@ func (c *mseed) runAsMaster() (err error) {
 	return nil
 }
 
-func (c *mseed) Mode() Mode {
-	if os.Getenv("mode") == string(ModeWorker) {
-		return ModeWorker
-	}
-	return ModeMaster
-}
-
 func (c *mseed) runAsWorker() (err error) {
 	var f = os.NewFile(uintptr(3), "connection")
 	var l net.Listener
@@ -169,4 +158,14 @@ func (c *mseed) runAsWorker() (err error) {
 		return c.server.Serve(l)
 	}
 	return graceful.Graceful(fn, c.server.Shutdown)
+}
+
+// IsMasterMode 当前进程的环境是否是master进程
+func IsMasterMode() bool {
+	return os.Getenv("mode") == string(ModeMaster)
+}
+
+// IsWorkerMode 当前进程的环境是否是worker进程
+func IsWorkerMode() bool {
+	return os.Getenv("mode") == string(ModeWorker)
 }
