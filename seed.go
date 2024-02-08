@@ -14,11 +14,9 @@ import (
 	"github.com/ory/graceful"
 )
 
-type Mode string
-
 const (
-	ModeWorker Mode = "worker"
-	ModeMaster Mode = "master"
+	Worker = "worker"
+	Master = "master"
 )
 
 type MSeed interface {
@@ -83,7 +81,7 @@ func (c *mseed) Run(addrs ...string) error {
 		c.server.Handler = c
 	}
 
-	if IsWorkerMode() {
+	if IsWorker() {
 		return c.runAsWorker()
 	}
 	return c.runAsMaster()
@@ -122,7 +120,7 @@ func (c *mseed) runAsMaster() (err error) {
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
 		command.ExtraFiles = append(command.ExtraFiles, c.fdFile)
-		command.Env = append(command.Env, fmt.Sprintf("mode=%s", ModeWorker))
+		command.Env = append(command.Env, fmt.Sprintf("mode=%s", Worker))
 		command.Start()
 	}
 	go fn()
@@ -160,12 +158,12 @@ func (c *mseed) runAsWorker() (err error) {
 	return graceful.Graceful(fn, c.server.Shutdown)
 }
 
-// IsMasterMode 当前进程的环境是否是master进程
-func IsMasterMode() bool {
-	return os.Getenv("mode") == string(ModeMaster)
+// IsMaster 当前进程的环境是否是master进程
+func IsMaster() bool {
+	return !IsWorker()
 }
 
 // IsWorkerMode 当前进程的环境是否是worker进程
-func IsWorkerMode() bool {
-	return os.Getenv("mode") == string(ModeWorker)
+func IsWorker() bool {
+	return os.Getenv("mode") == string(Worker)
 }
