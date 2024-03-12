@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/ory/graceful"
 )
@@ -121,16 +122,28 @@ func (c *mseed) runAsMaster() (err error) {
 		command.Stderr = os.Stderr
 		command.ExtraFiles = append(command.ExtraFiles, c.fdFile)
 		command.Env = append(command.Env, fmt.Sprintf("mode=%s", Worker))
-		command.Start()
+
+		_ = command.Start()
+		_ = command.Wait()
 	}
 	go fn()
+
+	// keep alived
+	var ticker = time.NewTicker(time.Second)
+	defer ticker.Stop()
+	go func() {
+		for range ticker.C {
+			if command.ProcessState != nil && command.ProcessState.Exited() {
+				go fn()
+			}
+		}
+	}()
 
 	var ch = make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM, syscall.SIGUSR1)
 
 	for sig := range ch {
 		_ = command.Process.Signal(os.Interrupt)
-		_ = command.Process.Release()
 
 		switch sig {
 		case os.Interrupt, syscall.SIGTERM:
