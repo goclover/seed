@@ -116,6 +116,7 @@ func (c *mseed) runAsMaster() (err error) {
 	}
 
 	var command *exec.Cmd
+	var errch = make(chan error, 1)
 	var fn = func() {
 		command = exec.Command(os.Args[0])
 		command.Stdout = os.Stdout
@@ -123,7 +124,10 @@ func (c *mseed) runAsMaster() (err error) {
 		command.ExtraFiles = append(command.ExtraFiles, c.fdFile)
 		command.Env = append(command.Env, fmt.Sprintf("mode=%s", Worker))
 
-		_ = command.Start()
+		err := command.Start()
+		if err != nil {
+			errch <- err
+		}
 		_ = command.Wait()
 	}
 	go fn()
@@ -139,10 +143,13 @@ func (c *mseed) runAsMaster() (err error) {
 		}
 	}()
 
-	var ch = make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, syscall.SIGTERM, syscall.SIGUSR1)
+	var sigch = make(chan os.Signal, 1)
+	signal.Notify(sigch, os.Interrupt, syscall.SIGTERM, syscall.SIGUSR1)
 
-	for sig := range ch {
+	select {
+	case err := <-errch:
+		return err
+	case sig := <-sigch:
 		_ = command.Process.Signal(os.Interrupt)
 
 		switch sig {
