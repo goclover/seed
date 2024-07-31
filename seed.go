@@ -146,8 +146,8 @@ func (c *mseed) runAsMaster() (err error) {
 	signal.Notify(sigch, os.Interrupt, syscall.SIGTERM, syscall.SIGUSR1)
 
 	select {
-	case err := <-errch:
-		return err
+	case <-errch:
+		return nil
 	case sig := <-sigch:
 		_ = command.Process.Signal(os.Interrupt)
 
