@@ -124,11 +124,10 @@ func (c *mseed) runAsMaster() (err error) {
 		command.ExtraFiles = append(command.ExtraFiles, c.fdFile)
 		command.Env = append(command.Env, fmt.Sprintf("mode=%s", Worker))
 
-		err := command.Start()
-		if err != nil {
+		_ = command.Start()
+		if err := command.Wait(); err != nil {
 			errch <- err
 		}
-		_ = command.Wait()
 	}
 	go fn()
 
