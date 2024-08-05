@@ -150,6 +150,7 @@ func (c *mseed) runAsMaster() (err error) {
 		return nil
 	case sig := <-sigch:
 		_ = command.Process.Signal(os.Interrupt)
+		_ = command.Wait()
 
 		switch sig {
 		case os.Interrupt, syscall.SIGTERM:
